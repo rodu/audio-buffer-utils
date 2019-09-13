@@ -610,7 +610,6 @@ function trimInternal(buffer, level, trimLeft, trimRight) {
 			len = buffer.length,
 			min = 1,
 			max = 0;
-			// avg = 0;
 
 		for (var channel = 0, c = buffer.numberOfChannels; channel < c; channel++) {
 			var data = buffer.getChannelData(channel);
@@ -619,13 +618,12 @@ function trimInternal(buffer, level, trimLeft, trimRight) {
 				if (i > len) break;
 				var value = Math.abs(data[i]);
 
-				if (value < min) min = value;
+				if (value > 0 && value < min) min = value;
 				if (value > max) max = value;
 			}
-			// avg = max - min / len;
 
 			// Overwrites the level with a computed threshold for the channel
-			computedLevels[channel] = level / len * (max - min);
+			computedLevels[channel] = level / 100 * (max - min);
 		}
 	}
 
