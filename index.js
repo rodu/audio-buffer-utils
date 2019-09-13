@@ -594,7 +594,40 @@ function trimRight (buffer, level) {
 function trimInternal(buffer, level, trimLeft, trimRight) {
 	validate(buffer);
 
+	var useComputedLevel = false;
+	// Allows to specify the leve as a prtcent string (eg: 3%)
+	if (typeof level === 'string') {
+		level = parseFloat(level);
+
+		useComputedLevel = true;
+	}
+
 	level = typeof level === 'number' && isFinite(level) ? Math.abs(level) : 0;
+
+	var computedLevels = [0, 0];
+	if ((trimLeft || trimRight) && useComputedLevel) {
+		var
+			len = buffer.length,
+			min = 1,
+			max = 0;
+			// avg = 0;
+
+		for (var channel = 0, c = buffer.numberOfChannels; channel < c; channel++) {
+			var data = buffer.getChannelData(channel);
+
+			for (var i = 0; i < data.length; i++) {
+				if (i > len) break;
+				var value = Math.abs(data[i]);
+
+				if (value < min) min = value;
+				if (value > max) max = value;
+			}
+			// avg = max - min / len;
+
+			// Overwrites the level with a computed threshold for the channel
+			computedLevels[channel] = level / len * (max - min);
+		}
+	}
 
 	var start, end;
 
@@ -602,6 +635,8 @@ function trimInternal(buffer, level, trimLeft, trimRight) {
 		start = buffer.length;
 		//FIXME: replace with indexOF
 		for (var channel = 0, c = buffer.numberOfChannels; channel < c; channel++) {
+			if (useComputedLevel) level = computedLevels[channel];
+
 			var data = buffer.getChannelData(channel);
 			for (var i = 0; i < data.length; i++) {
 				if (i > start) break;
@@ -619,6 +654,8 @@ function trimInternal(buffer, level, trimLeft, trimRight) {
 		end = 0;
 		//FIXME: replace with lastIndexOf
 		for (var channel = 0, c = buffer.numberOfChannels; channel < c; channel++) {
+			if (useComputedLevel) level = computedLevels[channel];
+
 			var data = buffer.getChannelData(channel);
 			for (var i = data.length - 1; i >= 0; i--) {
 				if (i < end) break;
