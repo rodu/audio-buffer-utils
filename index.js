@@ -594,7 +594,7 @@ function trimRight (buffer, level) {
 function trimInternal(buffer, level, trimLeft, trimRight) {
 	validate(buffer);
 
-	level = (level == null) ? 0 : Math.abs(level);
+	level = typeof level === 'number' && isFinite(level) ? Math.abs(level) : 0;
 
 	var start, end;
 
